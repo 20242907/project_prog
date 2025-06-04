@@ -2,32 +2,43 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pandas.errors import ParserError
 
-print('그래프 작성을 돕는 프로그램입니다')
+print('그래프 생성기입니다!')
+
+file_type = input("불러올 파일 종류를 선택해주세요 (csv / xlsx): ")
+file_name = input("파일 이름을 확장자까지 적어주세요 (예: data.csv): ")
 
 try:
-    file_name = input('파일명을 적어주세요(확장자 .csv): ')     #확장자 다른 오류, 없는파일 오류 잡아야함
-    data = pd.read_csv(file_name, encoding = 'utf-8')
-    fig, ax = plt.subplots()
+    if file_type == 'csv':
+        data = pd.read_csv(file_name, encoding='utf-8')
+    elif file_type == 'xlsx':
+        data = pd.read_excel(file_name)
+    else:
+        print("지원하지 않는 파일 형식입니다. csv 또는 xlsx만 입력해주세요.")
+        exit()
 
 except FileNotFoundError:
-    print('폴더 내에 존재하지 않는 파일입니다.')
-except ParserError:
-    print('파일의 형식이 틀렸습니다.')
+    print("폴더 내에 존재하지 않는 파일입니다.")
+    exit()
+except Exception:
+    print("파일의 형식이 틀렸습니다.")
+    exit()
+
+graph_type = input('그래프 양식을 정해주세요. \n막대/꺾은선/원\n: ')
+title = input('그래프의 이름을 입력해주세요: ')
+
+#막대, 꺾은선, 원 모두 plt로 처리하는게 어떨까요?
+if graph_type == '막대':
+    ax.bar()
+
+elif graph_type == '꺾은선':
+    ax.plot()
+
+elif graph_type == '원':
+    plt.pie(data[y_col], labels=data[x_col], autopct='%1.1f%%')
+    plt.title(title)
 
 else:
-    while True:
-        type_graph = input('그래프 양식을 정해주세요\n막대/꺾은선/원\n: ')
+    print('막대, 꺾은선, 원 중에서 골라주세요!')
 
-        if type_graph == '막대':
-            ax.bar()
-            break
-
-        elif type_graph == '꺾은선':
-            ax.plot()
-            break
-
-        elif type_graph == '원':
-            break
-
-        else:
-            print('막대, 꺾은선, 원 중에서 골라주세요!')
+plt.tight_layout()
+plt.show()
