@@ -9,9 +9,13 @@ file_name = input("파일 이름을 확장자까지 적어주세요 (예: data.c
 
 try:
     if file_type == 'csv':
-        data = pd.read_csv(file_name, encoding='utf-8')
+        try:
+            data = pd.read_csv(file_name, encoding='utf-8')
+        except
     elif file_type == 'xlsx':
-        data = pd.read_excel(file_name)
+        try:
+            data = pd.read_excel(file_name)
+        except
     else:
         print("지원하지 않는 파일 형식입니다. csv 또는 xlsx만 입력해주세요.")
         exit()
@@ -19,12 +23,13 @@ try:
 except FileNotFoundError:
     print("폴더 내에 존재하지 않는 파일입니다.")
     exit()
-except Exception:
-    print("파일의 형식이 틀렸습니다.")
-    exit()
 
-graph_type = input('그래프 양식을 정해주세요. \n막대/꺾은선/원\n: ')
-title = input('그래프의 이름을 입력해주세요: ')
+while True:
+    graph_type = input('그래프 양식을 정해주세요. \n막대/꺾은선/원\n: ')
+    if graph_type in ['막대', '꺾은선', '원']:
+        break
+    else:
+        print('막대, 꺾은선, 원 중에서 골라주세요!')
 
 #막대, 꺾은선, 원 모두 plt로 처리하는게 어떨까요?
 if graph_type == '막대':
@@ -36,9 +41,6 @@ elif graph_type == '꺾은선':
 elif graph_type == '원':
     plt.pie(data[y_col], labels=data[x_col], autopct='%1.1f%%')
     plt.title(title)
-
-else:
-    print('막대, 꺾은선, 원 중에서 골라주세요!')
 
 plt.tight_layout()
 plt.show()
