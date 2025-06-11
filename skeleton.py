@@ -29,7 +29,6 @@ elif file_type == 'xlsx':
 
 else:
     print("지원하지 않는 파일 형식입니다. csv 또는 xlsx만 입력해주세요.")
-    exit()
 
 while True:
     graph_type = input('그래프 양식을 정해주세요. \n막대/꺾은선/원\n: ')
