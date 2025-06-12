@@ -1,34 +1,49 @@
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
 import pandas as pd
 from pandas.errors import ParserError
+import platform
+
+def set_korean_font():
+    os_name = platform.system()
+
+    if os_name == 'Windows':
+        plt.rcParams['font.family'] = 'Malgun Gothic'
+    elif os_name == 'Darwin':
+        font_path = '/System/Library/Fonts/Supplemental/AppleGothic.ttf'
+        font_prop = fm.FontProperties(fname=font_path)
+        plt.rcParams['font.family'] = font_prop.get_name()
+    else:
+        plt.rcParams['font.family'] = 'NanumGothic'
+
+set_korean_font()
+
 
 print('그래프 생성기입니다!')
 
-file_type = input("불러올 파일 종류를 선택해주세요 (csv / xlsx): ")
-file_name = input("파일 이름을 확장자까지 적어주세요 (예: data.csv): ")
+while True:
+    file_path = input("불러올 파일 이름 또는 전체 경로를 입력해주세요. (e.g. data.csv 또는 /Users/...): ")
 
-if file_type == 'csv':
-    try:
-        data = pd.read_csv(file_name, encoding='utf-8')
-    except FileNotFoundError:
-        print('폴더 내에 존재하지 않는 파일입니다.')
-        exit()
-    except ParserError:
-        print('지원하지 않는 파일 형식입니다. csv파일이 맞는지 확인해주세요.')
-        exit()
+    if file_path.endswith('.csv'):
+        try:
+            data = pd.read_csv(file_path, encoding='utf-8')
+            break
+        except FileNotFoundError:
+            print('폴더 내에 존재하지 않는 파일입니다.')
+        except ParserError:
+            print('지원하지 않는 파일 형식입니다. csv 파일이 맞는지 확인해주세요.')
 
-elif file_type == 'xlsx':
-    try:
-        data = pd.read_excel(file_name)
-    except FileNotFoundError:
-        print("폴더 내에 존재하지 않는 파일입니다.")
-        exit()
-    except ParserError:
-        print('지원하지 않는 파일 형식입니다. xlsx파일이 맞는지 확인해주세요.')
-        exit()
+    elif file_path.endswith('.xlsx'):
+        try:
+            data = pd.read_excel(file_path)
+            break
+        except FileNotFoundError:
+            print("폴더 내에 존재하지 않는 파일입니다.")
+        except ParserError:
+            print('지원하지 않는 파일 형식입니다. xlsx파일이 맞는지 확인해주세요.')
 
-else:
-    print("지원하지 않는 파일 형식입니다. csv 또는 xlsx만 입력해주세요.")
+    else:
+        print("지원하지 않는 파일 형식입니다. csv 또는 xlsx만 입력해주세요.")
 
 while True:
     graph_type = input('그래프 양식을 정해주세요. \n막대/꺾은선/원\n: ')
@@ -37,8 +52,7 @@ while True:
     else:
         print('막대, 꺾은선, 원 중에서 골라주세요!')
 
-#그래프 제목, x축 이름, y축 이름 입력받으려고 넣었습니다
-#data.columns는 기본 형식이 index라고 해서 list변환해뒀습니다다
+
 while True:
     title = input('그래프의 제목을 입력해주세요: ')
     x_col = input('x축 기둥의 이름을 입력해주세요: ')
@@ -61,16 +75,40 @@ if graph_type == '막대':
     ax.bar(data[x_col], data[y_col])
 
 elif graph_type == '꺾은선':
-    ax.plot(data[x_col], data[y_col], marker='o')       #꺾은선 근본은 값 위에 점이 있어야 한다고 생각해서 마커 넣었는데 아닌 것 같으면 그냥 지워주세용
+    ax.plot(data[x_col], data[y_col], marker='o') 
 
 elif graph_type == '원':
-    plt.pie(data[y_col], labels=data[x_col], autopct='%1.1f%%')
-    plt.title(title)
+    if pd.api.types.is_numeric_dtype(data[y_col]):
+        plt.pie(data[y_col], labels=data[x_col], autopct='%1.1f%%')
+        plt.title(title)
+    else:
+        counts = data.groupby(x_col)[y_col].count()
+        plt.pie(counts, labels=counts.index, autopct='%1.1f%%')
+        plt.title(title)
 
-ax.set_xlabel(x_col)
-ax.set_ylabel(y_col)
-ax.set_title(title)
-ax.tick_params(axis='x', rotation=45)       #이름 길면 겹치길래 살짝 돌렸어요
+if graph_type in ['막대', '꺾은선']:
+    ax.set_xlabel(x_col)
+    ax.set_ylabel(y_col)
+    ax.set_title(title)
+    ax.tick_params(axis='x', rotation=45)       #이름 길면 겹치길래 살짝 돌렸어요
+
+print("\n[그래프 요약 정보]")
+if graph_type == '원':
+    if pd.api.types.is_numeric_dtype(data[y_col]):
+        total = data[y_col].sum()
+        max_label = data.loc[data[y_col].idxmax(), x_col]
+        print(f"총합: {total}")
+        print(f"가장 큰 값: {max_label} ({data[y_col].max()})")
+    else:
+        counts = data.groupby(x_col)[y_col].count()
+        most_common = counts.idxmax()
+        print(f"가장 많이 등장한 {x_col}: {most_common} ({counts.max()}개)")
+
+else:
+    print(f"{y_col} 평균: {data[y_col].mean():.2f}")
+    print(f"{y_col} 최대값: {data[y_col].max()} (↖ {data.loc[data[y_col].idxmax(), x_col]})")
+    print(f"{y_col} 최소값: {data[y_col].min()} (↘ {data.loc[data[y_col].idxmin(), x_col]})")
+
 
 plt.tight_layout()
 plt.show()
